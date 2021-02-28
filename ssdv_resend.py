@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import urllib.parse
 import urllib.request
 import json
@@ -95,7 +97,7 @@ while True:
 		with open(folder + 'uplink.txt', "w") as text_file:
 			if line != '':
 				print(line, file=text_file)
-		time.sleep(1)
+		time.sleep(9)
 	else:
 		print('.',end="")
 		sys.stdout.flush()

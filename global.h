@@ -29,6 +29,8 @@ struct TPayload
  
 struct TLoRaDevice 
 {
+	int    Enabled;
+	
 	double Frequency;
     double PPM;
 	double FrequencyOffset;
@@ -139,6 +141,7 @@ struct TConfig
 	char antenna[64];
 	int EnableDev;
 	char UplinkCode[64];
+	char Version[16];
 };
  
 typedef struct {

@@ -46,7 +46,7 @@
 #include "udpclient.h"
 #include "lifo_buffer.h"
 
-#define VERSION	"V1.8.38"
+#define VERSION	"V1.8.42"
 bool run = TRUE;
 
 // RFM98
@@ -335,7 +335,7 @@ void LogPacket( rx_metadata_t *Metadata, int Bytes, unsigned char MessageType )
     }
 }
 
-void LogTelemetryPacket(char *Telemetry)
+void LogTelemetryPacket(int Channel, char *Telemetry)
 {
     // if (Config.EnableTelemetryLogging)
     {
@@ -349,8 +349,7 @@ void LogTelemetryPacket(char *Telemetry)
             now = time( 0 );
             tm = localtime( &now );
 
-            fprintf( fp, "%02d:%02d:%02d - %s\n", tm->tm_hour, tm->tm_min,
-                     tm->tm_sec, Telemetry );
+            fprintf( fp, "%02d:%02d:%02d - %d - %s\n", tm->tm_hour, tm->tm_min, tm->tm_sec, Channel, Telemetry);
 
             fclose( fp );
         }
@@ -455,10 +454,16 @@ setMode( int Channel, uint8_t newMode )
 
     if ( newMode != RF98_MODE_SLEEP )
     {
-        while ( digitalRead( Config.LoRaDevices[Channel].DIO5 ) == 0 )
-        {
-        }
-        // delay(1);
+		if (Config.LoRaDevices[Channel].DIO5 >= 0)
+		{
+			while (digitalRead(Config.LoRaDevices[Channel].DIO5) == 0)
+			{
+			}
+		}
+		else
+		{
+			delay(1);
+		}
     }
 
     // LogMessage("Mode Change Done\n");
@@ -1091,7 +1096,7 @@ int ProcessTelemetryMessage(int Channel, received_t *Received)
 
             *endmessage = '\0';
 
-			LogTelemetryPacket(startmessage);
+			LogTelemetryPacket(Channel, startmessage);
 
             ProcessLineUKHAS(Channel, startmessage);
 			
@@ -1788,7 +1793,10 @@ void setupRFM98( int Channel )
     {
         // initialize the pins
         pinMode( Config.LoRaDevices[Channel].DIO0, INPUT );
-        pinMode( Config.LoRaDevices[Channel].DIO5, INPUT );
+		if (Config.LoRaDevices[Channel].DIO5 >= 0)
+		{
+			pinMode(Config.LoRaDevices[Channel].DIO5, INPUT);
+		}
 
         wiringPiISR( Config.LoRaDevices[Channel].DIO0, INT_EDGE_RISING,
                      Channel > 0 ? &DIO0_Interrupt_1 : &DIO0_Interrupt_0 );
@@ -1804,13 +1812,6 @@ void setupRFM98( int Channel )
             Config.LoRaDevices[Channel].InUse = 0;
             return;
         }
-
-        // if( digitalRead( Config.LoRaDevices[Channel].DIO5 ) == 0 )
-        // {
-            // LogMessage("Error: DIO5 pin is misconfigured on Channel %d, Disabling.\n", Channel);
-            // Config.LoRaDevices[Channel].InUse = 0;
-            // return;
-        // }
 
         // LoRa mode 
         setLoRaMode( Channel );
@@ -1941,11 +1942,15 @@ void RemoveTrailingSlash(char *Value)
 
 void LoRaCallback(int Index)
 {
-	setLoRaMode(Index);
+	// Check that this device is enabled otherwise, if it's missing, we'll get stuck trying to talk to the device
+	if (Config.LoRaDevices[Index].Enabled)
+	{
+		setLoRaMode(Index);
 
-    SetDefaultLoRaParameters(Index);
+		SetDefaultLoRaParameters(Index);
 
-    startReceiving(Index);
+		startReceiving(Index);
+	}
 }
 
 void MiscCallback(int Index)
@@ -2096,7 +2101,9 @@ void LoadConfigFile(void)
 		RegisterConfigDouble(MainSection, Channel, "frequency", &Config.LoRaDevices[Channel].Frequency, LoRaCallback);
 		RegisterConfigDouble(MainSection, Channel, "PPM", &Config.LoRaDevices[Channel].PPM, LoRaCallback);
 		
-        if (Config.LoRaDevices[Channel].Frequency > 100)
+		Config.LoRaDevices[Channel].Enabled = Config.LoRaDevices[Channel].Frequency > 100;
+		
+		if (Config.LoRaDevices[Channel].Enabled)
         {
 			// Defaults
             Config.LoRaDevices[Channel].ImplicitOrExplicit = EXPLICIT_MODE;
@@ -2599,6 +2606,7 @@ int main( int argc, char **argv )
 
 	// Clear config to zeroes so we only have to set non-zero defaults
 	memset((void *)&Config, 0, sizeof(Config));
+	strcpy(Config.Version, VERSION);
 
     if ( prog_count( "gateway" ) > 1 )
     {

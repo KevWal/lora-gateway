@@ -126,6 +126,11 @@ uint8_t currentMode = 0x81;
 #define PA_OFF_BOOST                0x00
 #define RFO_MIN                     0x00
 
+// High Power +20 dBm Operation on PA_BOOST pin
+#define REG_PA_DAC                  0x4D
+#define PA_DAC_20                   0x87
+#define PA_DAC_17                   0x84
+
 // LOW NOISE AMPLIFIER
 #define REG_LNA                     0x0C
 #define LNA_MAX_GAIN                0x23    // 0010 0011
@@ -428,6 +433,12 @@ setMode( int Channel, uint8_t newMode )
         case RF98_MODE_TX:
             writeRegister( Channel, REG_LNA, LNA_OFF_GAIN );    // TURN LNA OFF FOR TRANSMITT
             writeRegister( Channel, REG_PA_CONFIG, Config.LoRaDevices[Channel].Power ); // PA_MAX_UK
+            if (Config.LoRaDevices[Channel].Power == 0xFF) // Turn on additional amp for 20dBm
+            {
+                writeRegister( Channel, REG_PA_DAC, PA_DAC_20 );
+                LogMessage("Changing to 20dBm mode, check VSWR less than 3:1\n");
+		//ToDo Check "The Over Current Protection limit should be adapted to the actual power level, in RegOcp"
+            }
             writeRegister( Channel, REG_OPMODE, newMode );
             currentMode = newMode;
             break;

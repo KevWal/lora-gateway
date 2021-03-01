@@ -36,7 +36,7 @@ WINDOW *create_help_win(int height, int width, int starty, int startx)
     sprintf( buffer, "d/D = +1kHz      c/C= -1kHz  ");
     mvaddstr( 8, ( 80 - strlen( buffer ) ) / 2, buffer );
 
-    sprintf( buffer, "F = Toggle AFC ");
+    sprintf( buffer, "f/F = Toggle AFC ");
     mvaddstr( 10, ( 80 - strlen( buffer ) ) / 2, buffer );
 
     sprintf( buffer, "M = Toggle Modes (This is not implemented yet!!!) ");

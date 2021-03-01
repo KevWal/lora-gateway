@@ -1,0 +1,13 @@
+#!/bin/bash
+
+sleep 5;
+
+trap 2;
+cd /usr/local/lora-gateway;
+
+while true;
+do
+ ./gateway;
+ sleep 2;
+done;
+

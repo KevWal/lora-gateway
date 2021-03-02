@@ -131,6 +131,13 @@ uint8_t currentMode = 0x81;
 #define PA_DAC_20                   0x87
 #define PA_DAC_17                   0x84
 
+// Over Current Protection
+#define	REG_OCP			0x0B
+#define OCP_100_DEFAULT		0x2B
+#define OCP_120			0x2F // OCP 15 + OCPEnable 32
+#define OCP_130			0x30 // OCP 16 + OCPEnable 32
+#define OCP_MAX			0xFF
+
 // LOW NOISE AMPLIFIER
 #define REG_LNA                     0x0C
 #define LNA_MAX_GAIN                0x23    // 0010 0011
@@ -433,11 +440,11 @@ setMode( int Channel, uint8_t newMode )
         case RF98_MODE_TX:
             writeRegister( Channel, REG_LNA, LNA_OFF_GAIN );    // TURN LNA OFF FOR TRANSMITT
             writeRegister( Channel, REG_PA_CONFIG, Config.LoRaDevices[Channel].Power ); // PA_MAX_UK
-            if (Config.LoRaDevices[Channel].Power == 0xFF) // Turn on additional amp for 20dBm
+            if (Config.LoRaDevices[Channel].Power == 0xFF)
             {
-                writeRegister( Channel, REG_PA_DAC, PA_DAC_20 );
+                writeRegister( Channel, REG_PA_DAC, PA_DAC_20 ); // Turn on additional amp for 20dBm
+		writeRegister( Channel, REG_OCP, OCP_120 ); // Increase Over Current Protection limit
                 LogMessage("Changing to 20dBm mode, check VSWR less than 3:1\n");
-		//ToDo Check "The Over Current Protection limit should be adapted to the actual power level, in RegOcp"
             }
             writeRegister( Channel, REG_OPMODE, newMode );
             currentMode = newMode;
@@ -445,6 +452,7 @@ setMode( int Channel, uint8_t newMode )
         case RF98_MODE_RX_CONTINUOUS:
             if (Config.LoRaDevices[Channel].Power == 0xFF)
             {
+		writeRegister( Channel, REG_OCP, OCP_100_DEFAULT );     // Turn Over Current Protection back to default
                 writeRegister( Channel, REG_PA_DAC, PA_DAC_17 );        // Turn off 20dbm mode
             }
             writeRegister( Channel, REG_PA_CONFIG, PA_OFF_BOOST );  // TURN PA OFF FOR RECIEVE??

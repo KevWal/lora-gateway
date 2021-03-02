@@ -443,6 +443,10 @@ setMode( int Channel, uint8_t newMode )
             currentMode = newMode;
             break;
         case RF98_MODE_RX_CONTINUOUS:
+            if (Config.LoRaDevices[Channel].Power == 0xFF)
+            {
+                writeRegister( Channel, REG_PA_DAC, PA_DAC_17 );        // Turn off 20dbm mode
+            }
             writeRegister( Channel, REG_PA_CONFIG, PA_OFF_BOOST );  // TURN PA OFF FOR RECIEVE??
             writeRegister( Channel, REG_LNA, LNA_MAX_GAIN );    // MAX GAIN FOR RECEIVE
             writeRegister( Channel, REG_OPMODE, newMode );

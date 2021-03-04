@@ -70,20 +70,20 @@ def get_list_of_missing_packets(PayloadID, Minutes):
 	return result
 
 if len(sys.argv) <= 2:
-	print ("Usage: ssdv_resend <payload_id> <upload_callsign> [folder]\n")
+	print ("Usage: ssdv_resend <payload_id> <gateway_callsign> [folder]\n")
 	quit()
 
 payload_id = sys.argv[1]
 
-callsign = sys.argv[2]
+gw_callsign = sys.argv[2]
 	
 if len(sys.argv) >= 4:
 	folder = sys.argv[3]
 else:
 	folder = './'
 	
-print('Payload = ' + payload_id)
-print('Callsign = ' + callsign)
+print('Payload Id = ' + payload_id)
+print('Gateway Callsign = ' + gw_callsign)
 print('Folder = ' + folder)
 
 while True:
@@ -98,7 +98,7 @@ while True:
 			print("Missing Packets:", line)
 		with open(folder + 'uplink.txt', "w") as text_file:
 			if line != '':
-				line = line + ";" + callsign + "\n"
+				line = line + ";" + gw_callsign + "\n"
 				print(line, file=text_file)
 		time.sleep(9)
 	else:

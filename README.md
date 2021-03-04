@@ -185,7 +185,7 @@ There are currently two types of uplink supported:
 	-	Uplink of messages from the "SMSFolder" folder.  For this to work, "SMSFolder" has to be defined and present.  The gateway will then check for "*.sms" files in that folder.
 	-	Uplink of SSD packet re-send requests.  The gateway looks for an "uplink.txt" file in the gateway folder.  The file is created by an external Python script (supplied) which interrogates the SSDV server.
 
-Note: The usage of ssdv_resend now requires both a <payload_id> and a <upload_callsign>. Upload_callsign can be any identifier you wish if in the ISM band, or your callsign if using your Amateur radio privilieges.
+Note: The usage of ssdv_resend now requires both a <payload_id> and a <gateway_callsign>. Gateway_callsign can be any identifier you wish if in the ISM band, or your callsign if using your Amateur radio privilieges.
 
 Calling Mode
 ============
